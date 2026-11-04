@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Mistério dos Faraós: Desafio do Egito Antigo</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cinzel para títulos temáticos e Inter para texto límpido -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        egypt: {
+                            gold: '#F59E0B',
+                            darkGold: '#D97706',
+                            lightGold: '#FEF3C7',
+                            lapis: '#1E3A8A',
+                            deepBlue: '#0F172A',
+                            sand: '#FDF6E2',
+                            papyrus: '#F4E4BC',
+                            turquoise: '#0D9488',
+                            crimson: '#991B1B'
+                        }
+                    },
+                    fontFamily: {
+                        title: ['Cinzel', 'serif'],
+                        body: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1321;
+            background-image: radial-gradient(#1e3a8a 1px, transparent 1px), radial-gradient(#d97706 1px, #0d1321 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            color: #1f2937;
+        }
+
+        .font-egypt {
+            font-family: 'Cinzel', serif;
+        }
+
+        .gold-border {
+            border: 4px solid #F59E0B;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);
+        }
+
+        .gold-glow {
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.6);
+        }
+
+        .btn-large {
+            min-height: 4rem;
+            font-size: 1.25rem;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-large:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.5);
+        }
+
+        .btn-large:active {
+            transform: translateY(1px);
+        }
+
+        /* Animação de pulso para estrelas */
+        @keyframes starPulse {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .animate-star {
+            animation: starPulse 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Card flip / seleção */
+        .god-card {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .god-card.selected {
+            border-color: #0D9488;
+            background-color: #E6FFFA;
+            transform: scale(1.03);
+            box-shadow: 0 0 15px rgba(13, 148, 136, 0.5);
+        }
+
+        .god-card.matched {
+            border-color: #10B981;
+            background-color: #D1FAE5;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F4E4BC;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #D97706;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-2 sm:p-4 select-none">
+
+    <!-- Header do Jogo -->
+    <header class="w-full max-w-4xl bg-egypt-deepBlue/90 text-white rounded-2xl p-4 mb-4 border-2 border-egypt-gold flex flex-wrap justify-between items-center shadow-lg gap-2">
+        <div class="flex items-center space-x-3">
+            <span class="text-3xl text-egypt-gold"><i class="fa-solid fa-ankh"></i></span>
+            <div>
+                <h1 class="font-egypt text-lg sm:text-xl font-bold tracking-wider text-egypt-gold">O MISTÉRIO DOS FARAÓS</h1>
+                <p class="text-xs text-gray-300">História - 9º Ano | Profe História</p>
+            </div>
+        </div>
+        
+        <!-- Indicador de Fase e Pontuação -->
+        <div class="flex items-center space-x-4 sm:space-x-6">
+            <div class="text-center">
+                <span class="text-xs uppercase text-gray-400 font-semibold block">Fase</span>
+                <span id="phase-indicator" class="font-egypt font-bold text-xl text-egypt-gold">1 de 3</span>
+            </div>
+            <div class="text-center">
+                <span class="text-xs uppercase text-gray-400 font-semibold block">Pontos</span>
+                <span id="score-display" class="font-egypt font-bold text-2xl text-emerald-400">0</span>
+            </div>
+            <button id="sound-toggle" onclick="toggleSound()" class="p-2 bg-egypt-lapis hover:bg-blue-800 rounded-lg text-egypt-gold border border-egypt-gold transition" title="Mudar Som">
+                <i id="sound-icon" class="fa-solid fa-volume-high text-xl"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Container Principal do Jogo -->
+    <main class="w-full max-w-4xl bg-egypt-papyrus/95 rounded-3xl border-4 border-egypt-gold shadow-2xl p-4 sm:p-8 flex-grow flex flex-col justify-between relative overflow-hidden min-h-[500px]">
+        
+        <!-- ==================== TELA INICIAL ==================== -->
+        <div id="screen-welcome" class="flex flex-col items-center justify-center text-center space-y-6 my-auto">
+            <div class="w-24 h-24 bg-egypt-gold/20 rounded-full flex items-center justify-center border-4 border-egypt-gold mb-2 animate-bounce">
+                <i class="fa-solid fa-eye text-5xl text-egypt-darkGold"></i>
+            </div>
+            <h2 class="font-egypt text-3xl sm:text-4xl font-extrabold text-egypt-deepBlue">
+                Embarque na Viagem ao Egito Antigo!
+            </h2>
+            <p class="text-gray-800 text-base sm:text-lg max-w-2xl leading-relaxed">
+                Olá, jovem historiador(a)! O Faraó precisa do seu conhecimento para proteger os segredos da civilização do Rio Nilo. Complete as 3 fases, acumule pontos e conquiste a lendária <strong>Coroa dos Três Reinos</strong>!
+            </p>
+            <div class="bg-egypt-lightGold p-4 rounded-xl border border-egypt-gold max-w-md text-left text-sm text-gray-700 space-y-2">
+                <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-egypt-darkGold"></i> <span><strong>Fase 1:</strong> Quiz do Faraó</span></div>
+                <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-egypt-darkGold"></i> <span><strong>Fase 2:</strong> Panteão dos Deuses (Associação)</span></div>
+                <div class="flex items-center gap-2"><i class="fa-solid fa-check-circle text-egypt-darkGold"></i> <span><strong>Fase 3:</strong> Enigma do Sarcófago</span></div>
+            </div>
+            <button onclick="startGame()" class="btn-large w-full max-w-xs bg-gradient-to-r from-egypt-gold to-egypt-darkGold text-egypt-deepBlue font-egypt font-black rounded-2xl shadow-lg border-2 border-yellow-200 hover:from-yellow-400 hover:to-egypt-gold flex items-center justify-center space-x-3 text-xl">
+                <span>INICIAR DESAFIO</span>
+                <i class="fa-solid fa-play"></i>
+            </button>
+        </div>
+
+        <!-- ==================== FASE 1: QUIZ INTERATIVO ==================== -->
+        <div id="screen-phase1" class="hidden flex-col justify-between flex-grow space-y-4">
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="bg-egypt-lapis text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Fase 1: Conhecimentos Gerais</span>
+                    <span id="quiz-progress" class="text-xs font-bold text-egypt-deepBlue">Pergunta 1 de 4</span>
+                </div>
+                <!-- Barra de progresso -->
+                <div class="w-full bg-gray-300 h-2 rounded-full mb-6 overflow-hidden">
+                    <div id="quiz-bar" class="bg-egypt-gold h-full w-1/4 transition-all duration-300"></div>
+                </div>
+
+                <div class="bg-white/80 p-5 rounded-2xl border-2 border-egypt-gold/50 shadow-sm mb-6">
+                    <h3 id="quiz-question" class="font-egypt text-xl sm:text-2xl font-bold text-egypt-deepBlue leading-snug">
+                        Carregando pergunta...
+                    </h3>
+                </div>
+
+                <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Opções geradas dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Feedback da resposta -->
+            <div id="quiz-feedback" class="hidden p-4 rounded-xl text-center font-bold text-lg animate-fade-in border-2"></div>
+        </div>
+
+        <!-- ==================== FASE 2: ASSOCIAÇÃO DE DEUSES ==================== -->
+        <div id="screen-phase2" class="hidden flex-col justify-between flex-grow space-y-4">
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="bg-egypt-turquoise text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Fase 2: Panteão Sagrado</span>
+                    <span class="text-xs font-semibold text-gray-700">Selecione o Deus e depois sua Atribuição</span>
+                </div>
+                <p class="text-sm text-gray-700 mb-4 text-center bg-white/60 p-2 rounded-lg border border-egypt-gold/30">
+                    Conecte cada divindade egípcia ao seu respectivo papel na religião antiga!
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Coluna Deuses -->
+                    <div class="space-y-3">
+                        <h4 class="font-egypt text-center font-bold text-egypt-deepBlue border-b-2 border-egypt-gold pb-1">Divindades</h4>
+                        <div id="gods-list" class="space-y-2">
+                            <!-- Cards Deuses -->
+                        </div>
+                    </div>
+                    <!-- Coluna Atribuições -->
+                    <div class="space-y-3">
+                        <h4 class="font-egypt text-center font-bold text-egypt-deepBlue border-b-2 border-egypt-gold pb-1">Domínio / Atribuição</h4>
+                        <div id="domains-list" class="space-y-2">
+                            <!-- Cards Domínios -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="phase2-feedback" class="h-10 text-center font-bold text-sm sm:text-base flex items-center justify-center"></div>
+        </div>
+
+        <!-- ==================== FASE 3: ENIGMA DA CRIPTA ==================== -->
+        <div id="screen-phase3" class="hidden flex-col justify-between flex-grow space-y-4">
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <span class="bg-egypt-crimson text-white text-xs font-bold px-3 py-1 rounded-full uppercase">Fase 3: O Código do Sarcófago</span>
+                    <span class="text-xs font-semibold text-gray-700">Decifre a Sequência</span>
+                </div>
+
+                <div class="bg-egypt-deepBlue text-white p-4 rounded-2xl border-2 border-egypt-gold shadow-md text-center mb-4">
+                    <h3 class="font-egypt text-lg sm:text-xl text-egypt-gold mb-1">A Chave da Mutilação e Eternidade</h3>
+                    <p class="text-xs sm:text-sm text-gray-200">
+                        Ordene corretamente os passos do histórico processo de <strong>Mumificação</strong> para desvendar o segredo da cripta!
+                    </p>
+                </div>
+
+                <!-- Slots de ordem -->
+                <div class="bg-white/70 p-4 rounded-xl border border-egypt-gold mb-4">
+                    <h4 class="text-xs uppercase font-bold text-gray-500 mb-2 text-center">Sua Sequência (Clique nas etapas abaixo para preencher):</h4>
+                    <div id="enigma-slots" class="grid grid-cols-1 sm:grid-cols-4 gap-2">
+                        <!-- Slots preenchidos pelo usuário -->
+                    </div>
+                </div>
+
+                <!-- Opções de etapas -->
+                <div id="enigma-options" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <!-- Botões com as etapas desordenadas -->
+                </div>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="resetEnigma()" class="w-1/3 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-xl transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Limpar
+                </button>
+                <button onclick="checkEnigma()" class="w-2/3 btn-large bg-egypt-gold hover:bg-egypt-darkGold text-egypt-deepBlue font-egypt font-black rounded-xl transition flex items-center justify-center gap-2">
+                    <span>ABRIR SARCÓFAGO</span>
+                    <i class="fa-solid fa-key"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ==================== TELA FINAL (RESULTADOS) ==================== -->
+        <div id="screen-result" class="hidden flex-col items-center justify-center text-center space-y-6 my-auto py-4">
+            <h2 class="font-egypt text-3xl sm:text-4xl font-extrabold text-egypt-deepBlue">
+                Missão Cumprida!
+            </h2>
+            
+            <!-- Estrelas -->
+            <div id="stars-container" class="flex justify-center space-x-3 text-5xl text-egypt-gold">
+                <!-- Estrelas inseridas via JS -->
+            </div>
+
+            <!-- Caixa de pontuação -->
+            <div class="bg-white p-6 rounded-2xl border-4 border-egypt-gold shadow-lg max-w-md w-full space-y-3">
+                <p class="text-gray-600 uppercase font-semibold text-xs tracking-widest">Sua Pontuação Final</p>
+                <p id="final-score" class="font-egypt text-5xl font-black text-egypt-lapis">0</p>
+                <p id="final-rating" class="font-bold text-egypt-darkGold text-lg">Escriba Real</p>
+                <hr class="border-egypt-gold/30">
+                <p id="teacher-feedback" class="text-sm text-gray-700 italic leading-relaxed">
+                    <!-- Feedback pedagógico -->
+                </p>
+            </div>
+
+            <button onclick="restartGame()" class="btn-large w-full max-w-xs bg-gradient-to-r from-egypt-lapis to-blue-900 text-white font-egypt font-bold rounded-2xl border-2 border-egypt-gold hover:from-blue-800 hover:to-egypt-lapis flex items-center justify-center space-x-3 text-lg">
+                <i class="fa-solid fa-arrow-rotate-right"></i>
+                <span>JOGAR NOVAMENTE</span>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer simples -->
+    <footer class="w-full max-w-4xl text-center py-2 text-xs text-gray-400">
+        Recurso Pedagógico de História - 9º Ano | Base Nacional Comum Curricular (BNCC)
+    </footer>
+
+    <!-- SCRIPT DO JOGO -->
+    <script>
+        /* ==================== AUDIO SYSTEM (Web Audio API) ==================== */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-xl';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-xl text-red-400';
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                // Som de acerto (Acorde maior harmonioso)
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc1.type = 'sine';
+                osc2.type = 'triangle';
+
+                osc1.frequency.setValueAtTime(523.25, now); // C5
+                osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.15); // E5
+
+                osc2.frequency.setValueAtTime(659.25, now + 0.1);
+                osc2.frequency.exponentialRampToValueAtTime(783.99, now + 0.3); // G5
+
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.4);
+                osc2.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                // Som sutil de erro (Frequência grave descendente)
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.exponentialRampToValueAtTime(130.81, now + 0.25); // C3
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'victory') {
+                // Fanfarra festiva de vitória
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const startTime = now + (index * 0.12);
+
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, startTime);
+
+                    gain.gain.setValueAtTime(0.3, startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.3);
+                });
+            }
+        }
+
+        /* ==================== ESTADO DO JOGO ==================== */
+        let currentPhase = 0;
+        let score = 0;
+
+        // FASE 1 - QUIZ DATA
+        const quizData = [
+            {
+                question: "Qual era a importância fundamental do Rio Nilo para o desenvolvimento da civilização no Egito Antigo?",
+                options: [
+                    "Servia apenas como barreira natural contra invasões de impérios vizinhos.",
+                    "Suas cheias férteis permitiam a agricultura num território predominantemente desértico.",
+                    "Era utilizado exclusivamente para o transporte das pedras das pirâmides.",
+                    "Não tinha relevância econômica, apenas valor religioso de culto às águas."
+                ],
+                correct: 1,
+                explanation: "Exato! Heródoto dizia que 'o Egito é um presente do Nilo'. As cheias depositavam o húmus (terra fértil), garantindo fartas colheitas!"
+            },
+            {
+                question: "O Faraó exercia um poder do tipo Teocrático no Egito Antigo. O que isso significa?",
+                options: [
+                    "O rei era eleito pelo povo a cada quatro anos em assembleia pública.",
+                    "O poder político era totalmente separado da religião e das crenças.",
+                    "O governante era considerado uma encarnação viva de uma divindade (Hórus/Rá).",
+                    "O poder era exercido exclusivamente por um conselho de chefes militares."
+                ],
+                correct: 2,
+                explanation: "Muito bem! Teocracia significa 'governo de Deus'. O Faraó era visto como o próprio deus vivo e autoridade máxima política e religiosa."
+            },
+            {
+                question: "Para que serviam originalmente as grandes Pirâmides de Gizé (Quéops, Quéfren e Miquerinos)?",
+                options: [
+                    "Eram grandiosos templos para festas públicas e feiras comerciais.",
+                    "Funcionavam como fortalezas para proteger o exército em tempos de guerra.",
+                    "Eram monumentais túmulos para preservar o corpo mummificado e a alma do Faraó.",
+                    "Serviam como observatórios astronômicos dos escribas."
+                ],
+                correct: 2,
+                explanation: "Correto! As pirâmides eram monumentos funerários projetados para abrigar o corpo e as riquezas do faraó para a vida após a morte."
+            },
+            {
+                question: "Por que os egípcios realizavam o complexo ritual da mumificação?",
+                options: [
+                    "Acreditavam que a preservação do corpo era essencial para a vida no Além.",
+                    "Era apenas uma exigência de higiene para evitar doenças nas cidades.",
+                    "Para transformar os mortos em estátuas de decoração nos palácios.",
+                    "Era uma punição aplicada àqueles que desobedeciam às leis do império."
+                ],
+                correct: 0,
+                explanation: "Perfeito! A religião egípcia pregava que a alma (Ká) precisava reconhecer seu corpo físico no tribunal de Osíris para viver eternamente."
+            }
+        ];
+        let currentQuizIndex = 0;
+
+        // FASE 2 - DEUSES DATA
+        const godsData = [
+            { id: 1, name: "Rá", icon: "fa-sun", desc: "Deus do Sol e criador do universo" },
+            { id: 2, name: "Anúbis", icon: "fa-dog", desc: "Deus da mummificação com cabeça de chacal" },
+            { id: 3, name: "Osíris", icon: "fa-crown", desc: "Deus do submundo e julgador dos mortos" },
+            { id: 4, name: "Ísis", icon: "fa-wand-magic-sparkles", desc: "Deusa da maternidade, magia e proteção" }
+        ];
+
+        let selectedGod = null;
+        let selectedDomain = null;
+        let matchedPairs = 0;
+
+        // FASE 3 - ENIGMA MUMIFICAÇÃO
+        const mummificationSteps = [
+            { id: 1, text: "Retirada dos órgãos internos (guardados nos vasos canópicos)" },
+            { id: 2, text: "Desidratação do corpo com sal Natrão por cerca de 40 dias" },
+            { id: 3, text: "Enfaixamento do corpo com tiras de linho fino e amuletos" },
+            { id: 4, text: "Colocação do corpo no sarcófago e ritual de Abertura da Boca" }
+        ];
+
+        let userSequence = [];
+
+        /* ==================== CONTROLE DE NAVEGAÇÃO ==================== */
+
+        function startGame() {
+            initAudio();
+            currentPhase = 1;
+            score = 0;
+            updateScoreDisplay();
+            showScreen('screen-phase1');
+            loadQuizQuestion();
+        }
+
+        function showScreen(screenId) {
+            const screens = ['screen-welcome', 'screen-phase1', 'screen-phase2', 'screen-phase3', 'screen-result'];
+            screens.forEach(id => {
+                const el = document.getElementById(id);
+                if (id === screenId) {
+                    el.classList.remove('hidden');
+                    el.classList.add('flex');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+
+            // Atualiza o indicador visual da header
+            const phaseInd = document.getElementById('phase-indicator');
+            if (screenId === 'screen-phase1') phaseInd.textContent = "1 de 3";
+            else if (screenId === 'screen-phase2') phaseInd.textContent = "2 de 3";
+            else if (screenId === 'screen-phase3') phaseInd.textContent = "3 de 3";
+            else if (screenId === 'screen-result') phaseInd.textContent = "Fim!";
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-display').textContent = score;
+        }
+
+        /* ==================== FASE 1: LÓGICA DO QUIZ ==================== */
+
+        function loadQuizQuestion() {
+            const q = quizData[currentQuizIndex];
+            document.getElementById('quiz-progress').textContent = `Pergunta ${currentQuizIndex + 1} de ${quizData.length}`;
+            document.getElementById('quiz-bar').style.width = `${((currentQuizIndex + 1) / quizData.length) * 100}%`;
+            document.getElementById('quiz-question').textContent = q.question;
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            const feedbackEl = document.getElementById('quiz-feedback');
+            feedbackEl.classList.add('hidden');
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "btn-large w-full text-left p-4 rounded-xl bg-white border-2 border-gray-300 font-semibold text-gray-800 hover:border-egypt-gold hover:bg-egypt-lightGold flex items-center space-x-3 shadow-sm";
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-full bg-egypt-lapis text-white flex items-center justify-center text-sm font-bold flex-shrink-0">${String.fromCharCode(65 + idx)}</span>
+                    <span class="text-sm sm:text-base">${opt}</span>
+                `;
+                btn.onclick = () => checkQuizAnswer(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(selectedIdx, btnElement) {
+            const q = quizData[currentQuizIndex];
+            const allButtons = document.querySelectorAll('#quiz-options button');
+            allButtons.forEach(b => b.disabled = true); // Desabilita múltiplos cliques
+
+            const feedbackEl = document.getElementById('quiz-feedback');
+            feedbackEl.classList.remove('hidden');
+
+            if (selectedIdx === q.correct) {
+                playSound('correct');
+                score += 100;
+                updateScoreDisplay();
+                btnElement.classList.remove('bg-white', 'border-gray-300');
+                btnElement.classList.add('bg-green-100', 'border-green-500', 'text-green-900');
+                
+                feedbackEl.className = "p-4 rounded-xl text-center font-bold text-sm sm:text-base border-2 bg-green-50 border-green-400 text-green-800 animate-fade-in";
+                feedbackEl.innerHTML = `<i class="fa-solid fa-circle-check text-xl mr-2"></i> Exato! ${q.explanation}`;
+            } else {
+                playSound('wrong');
+                btnElement.classList.remove('bg-white', 'border-gray-300');
+                btnElement.classList.add('bg-red-100', 'border-red-500', 'text-red-900');
+                
+                // Destacar a resposta correta
+                allButtons[q.correct].classList.add('bg-green-100', 'border-green-500');
+
+                feedbackEl.className = "p-4 rounded-xl text-center font-bold text-sm sm:text-base border-2 bg-red-50 border-red-400 text-red-800 animate-fade-in";
+                feedbackEl.innerHTML = `<i class="fa-solid fa-circle-xmark text-xl mr-2"></i> Não foi dessa vez! ${q.explanation}`;
+            }
+
+            setTimeout(() => {
+                currentQuizIndex++;
+                if (currentQuizIndex < quizData.length) {
+                    loadQuizQuestion();
+                } else {
+                    // Avança para Fase 2
+                    currentPhase = 2;
+                    showScreen('screen-phase2');
+                    initPhase2();
+                }
+            }, 3200);
+        }
+
+        /* ==================== FASE 2: LÓGICA DE ASSOCIAÇÃO ==================== */
+
+        function initPhase2() {
+            selectedGod = null;
+            selectedDomain = null;
+            matchedPairs = 0;
+
+            const godsList = document.getElementById('gods-list');
+            const domainsList = document.getElementById('domains-list');
+            godsList.innerHTML = '';
+            domainsList.innerHTML = '';
+            document.getElementById('phase2-feedback').textContent = '';
+
+            // Embaralhar domínios
+            const shuffledDomains = [...godsData].sort(() => Math.random() - 0.5);
+
+            // Renderizar cards de Deuses
+            godsData.forEach(god => {
+                const card = document.createElement('div');
+                card.className = "god-card bg-white p-3 sm:p-4 rounded-xl border-2 border-gray-300 shadow-sm flex items-center space-x-3";
+                card.dataset.id = god.id;
+                card.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-egypt-lapis/10 text-egypt-lapis flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fa-solid ${god.icon}"></i>
+                    </div>
+                    <span class="font-egypt font-bold text-gray-800 text-base sm:text-lg">${god.name}</span>
+                `;
+                card.onclick = () => selectGodCard(card, god.id);
+                godsList.appendChild(card);
+            });
+
+            // Renderizar cards de Atribuições
+            shuffledDomains.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "god-card bg-white p-3 sm:p-4 rounded-xl border-2 border-gray-300 shadow-sm flex items-center space-x-3";
+                card.dataset.id = item.id;
+                card.innerHTML = `
+                    <div class="text-xs sm:text-sm font-semibold text-gray-700">${item.desc}</div>
+                `;
+                card.onclick = () => selectDomainCard(card, item.id);
+                domainsList.appendChild(card);
+            });
+        }
+
+        function selectGodCard(card, id) {
+            if (card.classList.contains('matched')) return;
+
+            document.querySelectorAll('#gods-list .god-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedGod = { element: card, id: id };
+
+            checkPair();
+        }
+
+        function selectDomainCard(card, id) {
+            if (card.classList.contains('matched')) return;
+
+            document.querySelectorAll('#domains-list .god-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedDomain = { element: card, id: id };
+
+            checkPair();
+        }
+
+        function checkPair() {
+            if (selectedGod && selectedDomain) {
+                const feedback = document.getElementById('phase2-feedback');
+
+                if (selectedGod.id === selectedDomain.id) {
+                    // Acertou a paridade
+                    playSound('correct');
+                    score += 150;
+                    updateScoreDisplay();
+
+                    selectedGod.element.classList.remove('selected');
+                    selectedDomain.element.classList.remove('selected');
+
+                    selectedGod.element.classList.add('matched');
+                    selectedDomain.element.classList.add('matched');
+
+                    feedback.innerHTML = `<span class="text-green-700 bg-green-100 px-4 py-1 rounded-full"><i class="fa-solid fa-check"></i> Conexão Sagrada Correta! (+150 pts)</span>`;
+
+                    matchedPairs++;
+                    selectedGod = null;
+                    selectedDomain = null;
+
+                    if (matchedPairs === godsData.length) {
+                        setTimeout(() => {
+                            currentPhase = 3;
+                            showScreen('screen-phase3');
+                            initPhase3();
+                        }, 1500);
+                    }
+                } else {
+                    // Errou o par
+                    playSound('wrong');
+                    feedback.innerHTML = `<span class="text-red-700 bg-red-100 px-4 py-1 rounded-full"><i class="fa-solid fa-xmark"></i> Combinação incorreta. Tente novamente!</span>`;
+
+                    const gElem = selectedGod.element;
+                    const dElem = selectedDomain.element;
+
+                    selectedGod = null;
+                    selectedDomain = null;
+
+                    setTimeout(() => {
+                        gElem.classList.remove('selected');
+                        dElem.classList.remove('selected');
+                        feedback.textContent = '';
+                    }, 1000);
+                }
+            }
+        }
+
+        /* ==================== FASE 3: LÓGICA DO ENIGMA ==================== */
+
+        function initPhase3() {
+            userSequence = [];
+            renderEnigmaSlots();
+            renderEnigmaOptions();
+        }
+
+        function renderEnigmaSlots() {
+            const slotsContainer = document.getElementById('enigma-slots');
+            slotsContainer.innerHTML = '';
+
+            for (let i = 0; i < 4; i++) {
+                const item = userSequence[i];
+                const slot = document.createElement('div');
+                slot.className = `min-h-[60px] p-2 rounded-lg border-2 flex items-center justify-center text-center text-xs font-bold transition-all ${
+                    item ? 'bg-egypt-lightGold border-egypt-gold text-egypt-deepBlue shadow-sm' : 'bg-gray-100 border-dashed border-gray-300 text-gray-400'
+                }`;
+
+                if (item) {
+                    slot.innerHTML = `<span class="mr-1 text-egypt-darkGold font-black">${i + 1}º</span> ${item.text}`;
+                } else {
+                    slot.innerHTML = `<span class="italic">Passo ${i + 1}</span>`;
+                }
+                slotsContainer.appendChild(slot);
+            }
+        }
+
+        function renderEnigmaOptions() {
+            const optionsContainer = document.getElementById('enigma-options');
+            optionsContainer.innerHTML = '';
+
+            // Embaralha as opções
+            const shuffled = [...mummificationSteps].sort(() => Math.random() - 0.5);
+
+            shuffled.forEach(step => {
+                const isSelected = userSequence.some(s => s.id === step.id);
+                const btn = document.createElement('button');
+                btn.className = `p-3 rounded-xl border-2 text-left text-xs sm:text-sm font-semibold transition flex items-center justify-between ${
+                    isSelected ? 'bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed opacity-50' : 'bg-white border-egypt-gold/40 hover:border-egypt-gold text-gray-800 shadow-sm'
+                }`;
+                btn.disabled = isSelected;
+                btn.innerHTML = `
+                    <span>${step.text}</span>
+                    <i class="fa-solid fa-plus text-egypt-gold ml-2"></i>
+                `;
+                btn.onclick = () => addStepToSequence(step);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function addStepToSequence(step) {
+            if (userSequence.length < 4) {
+                userSequence.push(step);
+                renderEnigmaSlots();
+                renderEnigmaOptions();
+            }
+        }
+
+        function resetEnigma() {
+            userSequence = [];
+            renderEnigmaSlots();
+            renderEnigmaOptions();
+        }
+
+        function checkEnigma() {
+            if (userSequence.length < 4) {
+                alert("Por favor, selecione os 4 passos da mumificação antes de tentar abrir o sarcófago!");
+                return;
+            }
+
+            let correctCount = 0;
+            userSequence.forEach((step, index) => {
+                if (step.id === index + 1) {
+                    correctCount++;
+                }
+            });
+
+            if (correctCount === 4) {
+                playSound('correct');
+                score += 300;
+                updateScoreDisplay();
+                setTimeout(() => {
+                    finishGame();
+                }, 800);
+            } else {
+                playSound('wrong');
+                alert(`Sequência incorreta! Apenas ${correctCount} de 4 passos estão na ordem certa. O sarcófago permanece selado. Tente organizar novamente!`);
+                resetEnigma();
+            }
+        }
+
+        /* ==================== TELA FINAL E AVALIAÇÃO ==================== */
+
+        function finishGame() {
+            playSound('victory');
+            showScreen('screen-result');
+
+            document.getElementById('final-score').textContent = score;
+
+            // Define estrelas e feedback com base nos pontos
+            // Máximo possível: 400 (Quiz) + 600 (Deuses) + 300 (Enigma) = 1300 pts
+            const starsContainer = document.getElementById('stars-container');
+            const finalRating = document.getElementById('final-rating');
+            const teacherFeedback = document.getElementById('teacher-feedback');
+            starsContainer.innerHTML = '';
+
+            let stars = 1;
+            let ratingText = "";
+            let feedbackText = "";
+
+            if (score >= 1100) {
+                stars = 3;
+                ratingText = "👑 Faraó Supremo do Conhecimento";
+                feedbackText = "Excelente trabalho! Você demonstrou domínio total sobre a civilização egípcia, compreendendo perfeitamente a religiosidade, a teocracia e a vida cotidiana no Rio Nilo. Parabéns!";
+            } else if (score >= 700) {
+                stars = 2;
+                ratingText = "📜 Sábio Escriba Real";
+                feedbackText = "Muito bem! Você tem ótimos conhecimentos sobre o Egito Antigo. Com mais uma revisão rápida nos conceitos de religião e mumificação, você alcançará o topo do reino!";
+            } else {
+                stars = 1;
+                ratingText = "🛕 Aprendiz de Arqueólogo";
+                feedbackText = "Bom esforço! Você concluiu o desafio, mas ainda pode melhorar seus conhecimentos sobre os Deuses e o Rio Nilo. Que tal tentar novamente para conquistar 3 estrelas?";
+            }
+
+            finalRating.textContent = ratingText;
+            teacherFeedback.textContent = `"${feedbackText}"`;
+
+            // Animação de exibição das estrelas
+            for (let i = 0; i < 3; i++) {
+                const star = document.createElement('i');
+                if (i < stars) {
+                    star.className = "fa-solid fa-star animate-star text-egypt-gold drop-shadow-md";
+                    star.style.animationDelay = `${i * 0.25}s`;
+                } else {
+                    star.className = "fa-regular fa-star text-gray-400 opacity-40";
+                }
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function restartGame() {
+            currentQuizIndex = 0;
+            userSequence = [];
+            startGame();
+        }
+    </script>
+</body>
+</html>
